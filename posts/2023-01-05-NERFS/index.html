@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Neural Renedering Fields</title>
+<meta name="keywords" content="language-model, vision-language-model, vision-model" />
+<meta name="description" content="he decoder which is also made up of a fully connected layer or a convolutional layer attempts to recreate the original input using the output of the encoder which is a bottleneck containing a lower dimensional representation of the input , it is trying to reverse the encoding process. It is trying to recerate a high dimensional output using a low dimensional input.">
+<meta name="author" content="aidy osu">
+<link rel="canonical" href="https://aidyai.github.io/posts/2023-01-05-NERFS/" />
+<link crossorigin="anonymous" href="/assets/css/stylesheet.min.949307ebc5cfbfc5e27c5ec3d332ce0be9137ec4137e02aefc52cf0267172e22.css" integrity="sha256-lJMH68XPv8XifF7D0zLOC&#43;kTfsQTfgKu/FLPAmcXLiI=" rel="preload stylesheet" as="style">
+<script defer crossorigin="anonymous" src="/assets/js/highlight.min.7680afc38aa6b15ddf158a4f3780b7b1f7dde7e91d26f073e6229bb7a0793c92.js" integrity="sha256-doCvw4qmsV3fFYpPN4C3sffd5&#43;kdJvBz5iKbt6B5PJI="
+    onload="hljs.initHighlightingOnLoad();"></script>
+ 
+
+  
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --hljs-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-8161570-5', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script><meta property="og:title" content="NERFS" />
+<meta property="og:description" content="he decoder which is also made up of a fully connected layer or a convolutional layer attempts to recreate the original input using the output of the encoder which is a bottleneck containing a lower dimensional representation of the input , it is trying to reverse the encoding process. It is trying to recerate a high dimensional output using a low dimensional input." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://aidyai.github.io/posts/2023-01-05-NERFS/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-01-05T15:10:30-07:00" />
+<meta property="article:modified_time" content="2023-01-05T15:10:30-07:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="NERFS"/>
+<meta name="twitter:description" content="he decoder which is also made up of a fully connected layer or a convolutional layer attempts to recreate the original 
+     input using the output of the 
+  encoder which is a bottleneck containing a lower dimensional representation of the input , it is trying to reverse the encoding process. 
+  It is trying to recerate a high dimensional output using a low dimensional input."/>
+ 
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$','$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+    }
+  };
+
+  window.addEventListener('load', (event) => {
+      document.querySelectorAll("mjx-container").forEach(function(x){
+        x.parentElement.classList += 'has-jax'})
+    });
+
+</script>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://aidyai.github.io/" accesskey="h" title="aidyosu">aidyosu</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://aidyai.github.io/" title="Posts">
+                    <span class="active">Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://aidyai.github.io/archives" title="Archive">
+                    <span>Archive</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://aidyai.github.io/archives" title="Projects" accesskey=/>
+                    <span>Projects</span>
+                </a>
+            </li>
+	    <li>
+                <a href="https://aidyai.github.io/.-//projects.html" title="Resume" accesskey=/>
+                    <span>Resume</span>
+                </a>
+            </li>
+      
+        </ul>
+    </nav>
+</header>
+
+
+
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      Generalized Visual Language Models
+    </h1>
+    <div class="post-meta"><span title='2022-06-09 15:10:30 -0700 PDT'>June 9, 2022</span>&nbsp;·&nbsp;25 min&nbsp;·&nbsp;Lilian Weng
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#jointly-training-with-image-and-text" aria-label="Jointly Training with Image and Text">Jointly Training with Image and Text</a></li>
+                <li>
+                    <a href="#learned-image-embedding-as-frozen-lm-prefix" aria-label="Learned Image Embedding as (Frozen) LM Prefix">Learned Image Embedding as (Frozen) LM Prefix</a></li>
+                <li>
+                    <a href="#text-image-cross-attention-fuse-mechanisms" aria-label="Text-Image Cross-Attention Fuse Mechanisms">Text-Image Cross-Attention Fuse Mechanisms</a></li>
+                <li>
+                    <a href="#no-training" aria-label="No Training">No Training</a><ul>
+                        
+                <li>
+                    <a href="#decoding-guided-with-vision-based-scores" aria-label="Decoding Guided with Vision-based Scores">Decoding Guided with Vision-based Scores</a></li>
+                <li>
+                    <a href="#language-as-communication-interface" aria-label="Language as Communication Interface">Language as Communication Interface</a></li></ul>
+                </li>
+                <li>
+                    <a href="#datasets" aria-label="Datasets">Datasets</a><ul>
+                        
+                <li>
+                    <a href="#image-caption-datasets" aria-label="Image Caption Datasets">Image Caption Datasets</a></li>
+                <li>
+                    <a href="#pair-image-text-datasets" aria-label="Pair Image-Text Datasets">Pair Image-Text Datasets</a></li></ul>
+                </li>
+                <li>
+                    <a href="#evaluation-tasks" aria-label="Evaluation Tasks">Evaluation Tasks</a><ul>
+                        
+                <li>
+                    <a href="#visual-question-answering" aria-label="Visual Question-Answering">Visual Question-Answering</a></li>
+                <li>
+                    <a href="#visual-language-reasoning" aria-label="Visual Language Reasoning">Visual Language Reasoning</a></li>
+                <li>
+                    <a href="#video-qa-and-understanding" aria-label="Video QA and Understanding">Video QA and Understanding</a></li></ul>
+                </li>
+                <li>
+                    <a href="#citation" aria-label="Citation">Citation</a></li>
+                <li>
+                    <a href="#references" aria-label="References">References</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+  
+
+<div class="post-content"><p>||- CONCEPTS -||- EQUATION -||- CODE -|| all mixed together</p>
+<h3 id="auto-encoders-aes">AUTO ENCODERS (AEs)</h3>
+<p>It<br>It is an Unsupervised learning algorithm that takes unstructed data and learn interesting attributes about the structure of the data.
+It is a neural net that performs two functions with two pricipal components:
+    1. $\cdot$ : It maps or compresses its input data into a lower dimension<br>    2. $\cdot$ : It tries to use this lower dimensional representation of the data to recreate the original input (RECONSTRUCTION)
+The difference between the attempted recreation and the original input is the Reconstructed Error            $$recon\space{error} = recon\space data-original\space data$$
+By training the neural network to minimise its Reconstruction error on the dataset, the network learns to exploit the natural structure in your data to find an efficient lower dimensional representation.</p>
+<h3 id="key-terms">KEY TERMS:</h3>
+<ol>
+<li>Latent Space/Embedding Representation: Lower dimensional representation of the data.</li>
+<li>Encoder: The part of the model that maps input to latent space </li>
+<li>Decoder: The part of the model that produces the original data fromt the latents representation</li>
+</ol>
+<h3 id="the-neural-network">THE NEURAL NETWORK</h3>
+<p>Neural Network description
+i. Encoder
+ii. Latent Space: It serves to reduce dimensionality, it contains lesser simension than the input data
+iii. Decoder: Image is generated by sampling from the latent space and mapping to an output image
+compressed features are meant to capture factors of variation in training data.</p>
+<ol>
+<li>ENCODER: It consists of a bunch of layers, which could be a Fully connected layer or a convolutional layer that are going to transform the original input into a smaller or lower dimensional representation, which is the bottleneck or latent space. </li>
+<li>DECODER: The decoder which is also made up of a fully connected layer or a convolutional layer attempts to recreate the original input using the output of the encoder which is a bottleneck containing a lower dimensional representation of the input , it is trying to reverse the encoding process. It is trying to recerate a high dimensional output using a low dimensional input.</li>
+</ol>
+<h4 id="optimization">OPTIMIZATION</h4>
+<p>The loss function of traing an Autoencoder simply is looking at the reconstruction version at the end of the decoder</p>
+<p>from the data.
+Autoencoders are a class of Neural Networks trained to reconstruct its input data and in the process learn reduced dimensional representation.</p>
+<p>input data: 28x28 
+reconstruction: 28x28</p>
+<h3 id="variational-auto-encodersvaes">VARIATIONAL AUTO-ENCODERS(VAEs)</h3>
+<p>Variational autoencoder is different from autoencoders in the sense that instead of mapping the input into a fixed vector, it is rather mapped to a distribution,</p>
+<p>The normal bottleneck vector $z$ is replace with two vectors representing the mean (vector) and standard deviation (vector) respectively.</p>
+<p>The vector which now serves as the input to the decoder layer is now a sample from this distribution.</p>
+<h2 id="vaes">VAE&#39;s</h2>
+<p>Variational Autoencoders compresses an input into a latent distribution and then samples from this distribution to recover the input. When training is done, we can sample from the latent space to generate new data points, usually itis quite easy to train but the outputs are sickly and blurry in nature. </p>
+<p>There are a class of generative models that provide a principled way of sampling from the model distribution
+VAES take Autoencoders a little bit further containing probabilistic function for z (latent space)</p>
+<p>Training data inout image is mapped to a latent space using a neural network
+the la</p>
+<p>![[VAE2.PNG]]
+![[VAE1.PNG]]</p>
+<h3 id="optimization-1">OPTIMIZATION</h3>
+<p>In training the variational autoencoder the loss function that is optimized via gradient descent consists of two terms:
+    1. Reconstruction loss:
+    2. KL Divergence:</p>
+<p>In the end we want to make sure that the distribution learned is not far off from a gaussian by forcing the  latent distribution to be relatively close to a gaussian.</p>
+<p>In order to be able to train and run gradients through our network and train end to end, conidering the presence of a sampling operation after our bottleneck whcih takes samples from the distribution and feeds it to our DECODER it is obvious that we cannot run backpropagation. On this not we giev in to the reparametrization trick.</p>
+<h3 id="reparameterization-trick">REPARAMETERIZATION TRICK:</h3>
+<p> The trick goes as follows, consideing the latent vector we are sampling, the vector can be seen as a sum of a fixed mue(u) parameter that is being learnt + sigma which is also a parameter we are learning, multiplied by a sampled epsilon where epsilon is a standards gaussian(zero mean and standard deviation of 1) and it is fixed. This gives us our latent vector where only the mean and the sigma are the only thing we want to train.</p>
+<p>The aim of the reparametrization trick 
+Instad of having a full stochastic node that is blocking all of the gradients which makes backpropagation impossible, it creates a part where backprop can be done and anothe part that is stochastic whcih doesnt require training </p>
+<h3 id="vector-quantized-variational-auto-encoders-vq-vaes">VECTOR QUANTIZED VARIATIONAL AUTO-ENCODERS (VQ-VAEs)</h3>
+
+<h1 id="citation">Citation<a hidden class="anchor" aria-hidden="true" href="#citation">#</a></h1>
+<p>Cited as:</p>
+<blockquote>
+<p>Weng, Lilian. (Jun 2022). Generalized visual language models. Lil&rsquo;Log. https://lilianweng.github.io/posts/2022-06-09-vlm/.</p>
+</blockquote>
+<p>Or</p>
+<pre tabindex="0"><code>@article{weng2022vlm,
+  title   = &quot;Generalized Visual Language Models&quot;,
+  author  = &quot;Weng, Lilian&quot;,
+  journal = &quot;Lil'Log&quot;,
+  year    = &quot;2022&quot;,
+  month   = &quot;Jun&quot;,
+  url     = &quot;https://lilianweng.github.io/posts/2022-06-09-vlm/&quot;
+}
+</code></pre><h1 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h1>
+<p>[1] Li et al. <a href="https://arxiv.org/abs/1908.03557">&ldquo;VisualBERT: A Simple and Performant Baseline for Vision and Language.&quot;</a> arXiv preprint:1908.03557 (2019).</p>
+<p>[2] Wang et al. <a href="https://arxiv.org/abs/2108.10904">&ldquo;SimVLM: Simple Visual Language Model Pretraining with Weak Supervision.&quot;</a> ICLR 2022.</p>
+<p>[3] Aghajanyan, et al. <a href="https://arxiv.org/abs/2201.07520">&ldquo;CM3: A Causal Masked Multimodal Model of the Internet.&quot;</a> arXiv preprint arXiv: 2201.07520 (2022).</p>
+<p>[4] Tsimpoukelli et al. <a href="https://arxiv.org/abs/2106.13884">&ldquo;Multimodal Few-Shot Learning with Frozen Language Models.&quot;</a> NeuriPS 2021.</p>
+<p>[5] Mokady, Hertz &amp; Hertz. <a href="https://arxiv.org/abs/2111.09734">&ldquo;ClipCap: CLIP Prefix for Image Captioning.&quot;</a> 2021.</p>
+<p>[6] Chen et al. <a href="https://arxiv.org/abs/2102.10407">&ldquo;VisualGPT: Data-efficient Adaptation of Pretrained Language Models for Image Captioning.&quot;</a> arXiv preprint arXiv:2111.09734 (2021).</p>
+<p>[7] Luo et al. <a href="https://arxiv.org/abs/2201.12723">&ldquo;A Frustratingly Simple Approach for End-to-End Image Captioning.&quot;</a> arXiv preprint arXiv:2201.12723 (2022).</p>
+<p>[8] Zellers et al. <a href="https://arxiv.org/abs/2106.02636">&ldquo;MERLOT: Multimodal neural script knowledge models.&quot;</a> NeuriPS 2021.</p>
+<p>[9] Alayrac et al. <a href="https://arxiv.org/abs/2204.14198">&ldquo;Flamingo: a Visual Language Model for Few-Shot Learning.&quot;</a> arXiv preprint arXiv:2204.14198 (2022).</p>
+<p>[10] Yu &amp; Wang et al. <a href="https://arxiv.org/abs/2205.01917">&ldquo;CoCa: Contrastive Captioners are Image-Text Foundation Models.&quot;</a> arXiv preprint arXiv:2205.01917 (2022).</p>
+<p>[11] Yang et al. <a href="https://arxiv.org/abs/2109.05014">&ldquo;An Empirical Study of GPT-3 for Few-Shot Knowledge-Based VQA.&quot;</a> arXiv preprint arXiv:2109.05014 (2021).</p>
+<p>[12] Su et al. <a href="https://arxiv.org/abs/2205.02655">&ldquo;Language models can see: Plugging visual controls in text generation.&quot;</a> arXiv preprint arXiv:2205.02655 (2022).</p>
+<p>[13] Zeng et al. <a href="https://arxiv.org/abs/2204.00598">&ldquo;Socratic Models: Composing Zero-Shot Multimodal Reasoning with Language.&quot;</a> arXiv preprint arXiv:2204.00598 (2022).</p>
+
+
+ </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://lilianweng.github.io/tags/language-model/">language-model</a></li>
+      <li><a href="https://lilianweng.github.io/tags/vision-language-model/">vision-language-model</a></li>
+      <li><a href="https://lilianweng.github.io/tags/vision-model/">vision-model</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://lilianweng.github.io/posts/2022-09-08-ntk/">
+    <span class="title">« </span>
+    <br>
+    <span>Some Math behind Neural Tangent Kernel</span>
+  </a>
+  <a class="next" href="https://lilianweng.github.io/posts/2022-04-15-data-gen/">
+    <span class="title"> »</span>
+    <br>
+    <span>Learning with not Enough Data Part 3: Data Generation</span>
+  </a>
+</nav>
+</footer>
+</article>
+    </main>
+  
+  
+  
+  
+  
+  
+  
+  
+<footer class="footer">
+    <span>&copy; 2023 <a href="https://lilianweng.github.io/">Lil&#39;Log</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://git.io/hugopapermod" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerText = 'copy';
+
+        function copyingDone() {
+            copybutton.innerText = 'copied!';
+            setTimeout(() => {
+                copybutton.innerText = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
+
+
+ 
+
+
+
+
