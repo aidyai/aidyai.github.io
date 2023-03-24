@@ -1,107 +1,277 @@
-<h1 id="basic-diffusion-models-notations">BASIC DIFFUSION MODELS NOTATIONS</h1>
-<table>
-<thead>
-<tr>
-<th>Notation</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>$T$</td>
-<td>Total number of time steps of the diffusion process</td>
-</tr>
-<tr>
-<td>$t$</td>
-<td>Time step $t$ on the range of $[0,T]$</td>
-</tr>
-<tr>
-<td>$t$</td>
-<td>$[0,T]$</td>
-</tr>
-<tr>
-<td>${|\cdot|}$</td>
-<td>${L_2}$ norm</td>
-</tr>
-<tr>
-<td>$\mu$ &amp; $\Sigma$</td>
-<td>Mean and Variance</td>
-</tr>
-<tr>
-<td>$b$</td>
-<td>Bias term</td>
-</tr>
-<tr>
-<td>$\epsilon$</td>
-<td>Standard Gaussian Noise</td>
-</tr>
-<tr>
-<td>$x_T$</td>
-<td>Input data becomes indistinguishable from an Isotropic Gaussian Noise</td>
-</tr>
-<tr>
-<td>$\mathcal{N}$</td>
-<td>Normal Distribution</td>
-</tr>
-<tr>
-<td>$\beta_t$</td>
-<td>Variance coefficient at time $t$</td>
-</tr>
-<tr>
-<td>$\alpha_t$</td>
-<td>$1-\beta_t$</td>
-</tr>
-<tr>
-<td>$\bar{\alpha}{_t}$</td>
-<td>Cumulative product of $\alpha_t$</td>
-</tr>
-<tr>
-<td>$x$</td>
-<td>Input Data</td>
-</tr>
-<tr>
-<td>$x_0$</td>
-<td>Unperturbed data in diffusion model</td>
-</tr>
-<tr>
-<td>$x_t$</td>
-<td>Diffused data in diffusion model</td>
-</tr>
-<tr>
-<td>$q({x_t\mid{x_{t-1}}})$</td>
-<td>The forward noising Process</td>
-</tr>
-<tr>
-<td>$q({x_{t-1}\mid{x_t}})$</td>
-<td>The backward noising process</td>
-</tr>
-<tr>
-<td>$\mu_{\theta}({{x_t,t})}$</td>
-<td>Learnable Mean in the backward process at time $t$</td>
-</tr>
-<tr>
-<td>$\Sigma_{\theta}(x_t,t)$</td>
-<td>Learnable Variance in the backward process at time $t$</td>
-</tr>
-<tr>
-<td>$q(x_t\mid x_{t-1}) = \mathcal{N(x_t; \sqrt{1-\beta_t{x_{t-1}}\beta_t}I)}$</td>
-<td>This takes the image at the previous step, rescales the pixel values in this image and then adds tiny bit of noise via the variance scheduler &quot;per time step&quot;</td>
-</tr>
-<tr>
-<td>$L_{(VLB)}$</td>
-<td>Variational Lower Bound</td>
-</tr>
-<tr>
-<td>$D_{KL}{\space}q(x_T{\mid}x_0){\mid}p(x_T ))$</td>
-<td>Kulliback Leibler Divergence between two Gaussian Distributions</td>
-</tr>
-<tr>
-<td>$q({x_1\space,{\dots,}\space{x_T}}\mid{x_0})$</td>
-<td>Joint distribution of all the samples generated in the forward process consitioned on $x_0$</td>
-</tr>
-</tbody></table>
-<h1 id="references">REFERENCES</h1>
-<ol>
-<li>Ling Yang, Zhilong Zhang, Shenda Hong, Runsheng Xu, Yue Zhao, Yingxia Shao, Wentao Zhang, Ming-Hsuan Yang, Bin Cui. 2022. Diffusion Models: A Comprehensive Survey of Methods and Applications.</li>
-<li>Alexander Quinn Nichol and Prafulla Dhariwal. 2021. Improved denoising diffusion probabilistic models. In International Conference on Machine Learning. PMLR, 8162–8171.</li>
-<li>Jonathan Ho et al. (2020). Denoising diffusion probabilistic models.</li>
-</ol>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --hljs-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-8161570-5', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script><meta property="og:title" content="NERFS" />
+<meta property="og:description" content="he decoder which is also made up of a fully connected layer or a convolutional layer attempts to recreate the original input using the output of the encoder which is a bottleneck containing a lower dimensional representation of the input , it is trying to reverse the encoding process. It is trying to recerate a high dimensional output using a low dimensional input." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://aidyai.github.io/posts/2023-01-05-NERFS/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-01-05T15:10:30-07:00" />
+<meta property="article:modified_time" content="2023-01-05T15:10:30-07:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="NERFS"/>
+<meta name="twitter:description" content="he decoder which is also made up of a fully connected layer or a convolutional layer attempts to recreate the original 
+     input using the output of the 
+  encoder which is a bottleneck containing a lower dimensional representation of the input , it is trying to reverse the encoding process. 
+  It is trying to recerate a high dimensional output using a low dimensional input."/>
+ 
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$','$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+    }
+  };
+
+  window.addEventListener('load', (event) => {
+      document.querySelectorAll("mjx-container").forEach(function(x){
+        x.parentElement.classList += 'has-jax'})
+    });
+
+</script>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://aidyai.github.io/" accesskey="h" title="aidyosu">aidyosu</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://aidyai.github.io/" title="Posts">
+                    <span class="active">Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://aidyai.github.io/archives" title="Archive">
+                    <span>Archive</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://aidyai.github.io/archives" title="Projects" accesskey=/>
+                    <span>Projects</span>
+                </a>
+            </li>
+	    <li>
+                <a href="https://aidyai.github.io/.-//projects.html" title="Resume" accesskey=/>
+                    <span>Resume</span>
+                </a>
+            </li>
+      
+        </ul>
+    </nav>
+</header>
+
+
+
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      BASIC DIFFUSION MODELS NOTATIONS
+    </h1>
+    <div class="post-meta"><span title='2023-02-10-DIFFUSION MODEL NOTATIONS'>February 2, 2023</span>aidy osu
+
+</div>
+  </header> <div class="toc">
+    <details>
+    <h1 id="basic-diffusion-models-notations">BASIC DIFFUSION MODELS NOTATIONS</h1>
+    <table>
+    <thead>
+    <tr>
+    <th>Notation</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody><tr>
+    <td>$T$</td>
+    <td>Total number of time steps of the diffusion process</td>
+    </tr>
+    <tr>
+    <td>$t$</td>
+    <td>Time step $t$ on the range of $[0,T]$</td>
+    </tr>
+    <tr>
+    <td>$t$</td>
+    <td>$[0,T]$</td>
+    </tr>
+    <tr>
+    <td>${|\cdot|}$</td>
+    <td>${L_2}$ norm</td>
+    </tr>
+    <tr>
+    <td>$\mu$ &amp; $\Sigma$</td>
+    <td>Mean and Variance</td>
+    </tr>
+    <tr>
+    <td>$b$</td>
+    <td>Bias term</td>
+    </tr>
+    <tr>
+    <td>$\epsilon$</td>
+    <td>Standard Gaussian Noise</td>
+    </tr>
+    <tr>
+    <td>$x_T$</td>
+    <td>Input data becomes indistinguishable from an Isotropic Gaussian Noise</td>
+    </tr>
+    <tr>
+    <td>$\mathcal{N}$</td>
+    <td>Normal Distribution</td>
+    </tr>
+    <tr>
+    <td>$\beta_t$</td>
+    <td>Variance coefficient at time $t$</td>
+    </tr>
+    <tr>
+    <td>$\alpha_t$</td>
+    <td>$1-\beta_t$</td>
+    </tr>
+    <tr>
+    <td>$\bar{\alpha}{_t}$</td>
+    <td>Cumulative product of $\alpha_t$</td>
+    </tr>
+    <tr>
+    <td>$x$</td>
+    <td>Input Data</td>
+    </tr>
+    <tr>
+    <td>$x_0$</td>
+    <td>Unperturbed data in diffusion model</td>
+    </tr>
+    <tr>
+    <td>$x_t$</td>
+    <td>Diffused data in diffusion model</td>
+    </tr>
+    <tr>
+    <td>$q({x_t\mid{x_{t-1}}})$</td>
+    <td>The forward noising Process</td>
+    </tr>
+    <tr>
+    <td>$q({x_{t-1}\mid{x_t}})$</td>
+    <td>The backward noising process</td>
+    </tr>
+    <tr>
+    <td>$\mu_{\theta}({{x_t,t})}$</td>
+    <td>Learnable Mean in the backward process at time $t$</td>
+    </tr>
+    <tr>
+    <td>$\Sigma_{\theta}(x_t,t)$</td>
+    <td>Learnable Variance in the backward process at time $t$</td>
+    </tr>
+    <tr>
+    <td>$q(x_t\mid x_{t-1}) = \mathcal{N(x_t; \sqrt{1-\beta_t{x_{t-1}}\beta_t}I)}$</td>
+    <td>This takes the image at the previous step, rescales the pixel values in this image and then adds tiny bit of noise via the variance scheduler &quot;per time step&quot;</td>
+    </tr>
+    <tr>
+    <td>$L_{(VLB)}$</td>
+    <td>Variational Lower Bound</td>
+    </tr>
+    <tr>
+    <td>$D_{KL}{\space}q(x_T{\mid}x_0){\mid}p(x_T ))$</td>
+    <td>Kulliback Leibler Divergence between two Gaussian Distributions</td>
+    </tr>
+    <tr>
+    <td>$q({x_1\space,{\dots,}\space{x_T}}\mid{x_0})$</td>
+    <td>Joint distribution of all the samples generated in the forward process consitioned on $x_0$</td>
+    </tr>
+    </tbody></table>
+    </details>
+  
+    <h1 id="references">REFERENCES</h1>
+    <ol>
+    <li>Ling Yang, Zhilong Zhang, Shenda Hong, Runsheng Xu, Yue Zhao, Yingxia Shao, Wentao Zhang, Ming-Hsuan Yang, Bin Cui. 2022. Diffusion Models: A Comprehensive Survey of Methods and Applications.</li>
+    <li>Alexander Quinn Nichol and Prafulla Dhariwal. 2021. Improved denoising diffusion probabilistic models. In International Conference on Machine Learning. PMLR, 8162–8171.</li>
+    <li>Jonathan Ho et al. (2020). Denoising diffusion probabilistic models.</li>
+    </ol>
