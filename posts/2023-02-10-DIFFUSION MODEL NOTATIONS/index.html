@@ -1,0 +1,107 @@
+<h1 id="basic-diffusion-models-notations">BASIC DIFFUSION MODELS NOTATIONS</h1>
+<table>
+<thead>
+<tr>
+<th>Notation</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>$T$</td>
+<td>Total number of time steps of the diffusion process</td>
+</tr>
+<tr>
+<td>$t$</td>
+<td>Time step $t$ on the range of $[0,T]$</td>
+</tr>
+<tr>
+<td>$t$</td>
+<td>$[0,T]$</td>
+</tr>
+<tr>
+<td>${|\cdot|}$</td>
+<td>${L_2}$ norm</td>
+</tr>
+<tr>
+<td>$\mu$ &amp; $\Sigma$</td>
+<td>Mean and Variance</td>
+</tr>
+<tr>
+<td>$b$</td>
+<td>Bias term</td>
+</tr>
+<tr>
+<td>$\epsilon$</td>
+<td>Standard Gaussian Noise</td>
+</tr>
+<tr>
+<td>$x_T$</td>
+<td>Input data becomes indistinguishable from an Isotropic Gaussian Noise</td>
+</tr>
+<tr>
+<td>$\mathcal{N}$</td>
+<td>Normal Distribution</td>
+</tr>
+<tr>
+<td>$\beta_t$</td>
+<td>Variance coefficient at time $t$</td>
+</tr>
+<tr>
+<td>$\alpha_t$</td>
+<td>$1-\beta_t$</td>
+</tr>
+<tr>
+<td>$\bar{\alpha}{_t}$</td>
+<td>Cumulative product of $\alpha_t$</td>
+</tr>
+<tr>
+<td>$x$</td>
+<td>Input Data</td>
+</tr>
+<tr>
+<td>$x_0$</td>
+<td>Unperturbed data in diffusion model</td>
+</tr>
+<tr>
+<td>$x_t$</td>
+<td>Diffused data in diffusion model</td>
+</tr>
+<tr>
+<td>$q({x_t\mid{x_{t-1}}})$</td>
+<td>The forward noising Process</td>
+</tr>
+<tr>
+<td>$q({x_{t-1}\mid{x_t}})$</td>
+<td>The backward noising process</td>
+</tr>
+<tr>
+<td>$\mu_{\theta}({{x_t,t})}$</td>
+<td>Learnable Mean in the backward process at time $t$</td>
+</tr>
+<tr>
+<td>$\Sigma_{\theta}(x_t,t)$</td>
+<td>Learnable Variance in the backward process at time $t$</td>
+</tr>
+<tr>
+<td>$q(x_t\mid x_{t-1}) = \mathcal{N(x_t; \sqrt{1-\beta_t{x_{t-1}}\beta_t}I)}$</td>
+<td>This takes the image at the previous step, rescales the pixel values in this image and then adds tiny bit of noise via the variance scheduler &quot;per time step&quot;</td>
+</tr>
+<tr>
+<td>$L_{(VLB)}$</td>
+<td>Variational Lower Bound</td>
+</tr>
+<tr>
+<td>$D_{KL}{\space}q(x_T{\mid}x_0){\mid}p(x_T ))$</td>
+<td>Kulliback Leibler Divergence between two Gaussian Distributions</td>
+</tr>
+<tr>
+<td>$q({x_1\space,{\dots,}\space{x_T}}\mid{x_0})$</td>
+<td>Joint distribution of all the samples generated in the forward process consitioned on $x_0$</td>
+</tr>
+</tbody></table>
+<h1 id="references">REFERENCES</h1>
+<ol>
+<li>Ling Yang, Zhilong Zhang, Shenda Hong, Runsheng Xu, Yue Zhao, Yingxia Shao, Wentao Zhang, Ming-Hsuan Yang, Bin Cui. 2022. Diffusion Models: A Comprehensive Survey of Methods and Applications.</li>
+<li>Alexander Quinn Nichol and Prafulla Dhariwal. 2021. Improved denoising diffusion probabilistic models. In International Conference on Machine Learning. PMLR, 8162–8171.</li>
+<li>Jonathan Ho et al. (2020). Denoising diffusion probabilistic models.</li>
+</ol>
