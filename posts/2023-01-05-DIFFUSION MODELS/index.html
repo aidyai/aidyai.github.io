@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>UNDERSTANDING DIFFUSION MODELS AND FINETUNING STABLE DIFFUSION USING DREAMBOOTH (PART 1)</title>
+<meta name="author" content="aidy osu">
+<link rel="canonical" href="https://aidyai.github.io/posts/2023-02-10-DIFFUSION MODEL NOTATIONS/" />
+<link crossorigin="anonymous" href="/assets/css/stylesheet.min.949307ebc5cfbfc5e27c5ec3d332ce0be9137ec4137e02aefc52cf0267172e22.css" integrity="sha256-lJMH68XPv8XifF7D0zLOC&#43;kTfsQTfgKu/FLPAmcXLiI=" rel="preload stylesheet" as="style">
+<script defer crossorigin="anonymous" src="/assets/js/highlight.min.7680afc38aa6b15ddf158a4f3780b7b1f7dde7e91d26f073e6229bb7a0793c92.js" integrity="sha256-doCvw4qmsV3fFYpPN4C3sffd5&#43;kdJvBz5iKbt6B5PJI="
+    onload="hljs.initHighlightingOnLoad();"></script>
+ 
+
+  
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>    
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --hljs-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-8161570-5', 'auto');
+	
+	ga('send', 'pageview');
+}
+
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$','$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+    }
+  };
+
+  window.addEventListener('load', (event) => {
+      document.querySelectorAll("mjx-container").forEach(function(x){
+        x.parentElement.classList += 'has-jax'})
+    });
+
+</script>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://aidyai.github.io/" accesskey="h" title="aidyosu">aidyosu</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        
+    </nav>
+</header>
+
+
+
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      UNDERSTANDING DIFFUSION MODELS AND FINETUNING STABLE DIFFUSION USING DREAMBOOTH (PART 1)
+    </h1>
+    <div class="post-meta"><span title='2023-02-10-DIFFUSION MODEL NOTATIONS'>February 12, 2023</span>
+
+</div>
+  </header>
+
+
+
+
+
+<h1 id="understanding-diffusion-models-and-finetuning-stable-diffusion-using-dreambooth--part-1">UNDERSTANDING DIFFUSION MODELS AND FINETUNING STABLE DIFFUSION USING DREAMBOOTH (PART 1)</h1>
+<ol>
+<li>__DIFFUSION MODELS + DENOISING DIFFUSION MODEL EXPLAINED</li>
+<li>__3 POPULAR SOTA DIFFUSION MODELS</li>
+<li>__SOURCE CODE FOR IMPLEMENTATION</li>
+<li>__CONCLUSION</li>
+<li>__REFERENCES</li>
+</ol>
+<p>It is no news that Diffusion models are the best of the best Generative models that have surpassed GANS in Computer Vision and other Multi-Modal Learning tasks. These models have created significant feats in arts, generative NFT&#39;s, Interior design, personalized avatar creations, 3d modelling, urban design etc.</p>
+<p>This post is going to be a two part series where I first of all expose how Denoising Diffusion models work which is the foundation upon which all these SOTA models (GLIDE, DALLE.2, SD) are being built on as well as in the second part practically showing handson how it could be finetuned (SD) to create a particular design or concept of choice.</p>
+<h3 id="diffusion-models">DIFFUSION MODELS</h3>
+<p>DIffusion model are a class of state-of-the art deep generative models that have shown impressive results on various tasks ranging from multi-modal modelling Vision to NLP to waveform signal Processing even to 3d object generation (but not comparable to humans).These models have achieved very impressive quality and diversity of sample synthesis than other state-of-the art genrative models like GANS, VAEs, Normalizing Flows etc.</p>
+<p>Diffusion model are generative models meaning it is a model used to generate data similar to the data which it was trained on. A generative model attempts to learn the data distribution over $p(x|y)$ where $x$ is the image and $y$ the labels in order to generate novel samples. Onced trained, a generative model can generate novel samples from an approximation of $p(x|y)$, denoted $p_\theta({x|y})$ </p>
+<h3 id="areas-where-diffusion-models-have-been-applied-to">Areas Where Diffusion Models have been applied to</h3>
+<ol>
+<li>Image Super Resolution..https</li>
+<li>Image Inpainting..https</li>
+<li>Image Outpainting..https</li>
+<li>Image to Image generation..https</li>
+<li>Semantic Segmentation..https</li>
+<li>Point Cloud Completion and Generation..https</li>
+<li>Text-to-Image Generation..https</li>
+<li>Text-to-Audio Generation..https</li>
+</ol>
+<h2 id="state-of-the-art-diffusion-models-cherrypicked">STATE OF THE ART DIFFUSION MODELS (cherrypicked)</h2>
+<ol>
+<li>DALLE 2</li>
+<li>STABLE DIFFUSION</li>
+</ol>
+<h2 id="understanding-the-foundations-ddpms">UNDERSTANDING THE FOUNDATIONS (DDPMs)</h2>
+<p>Originally introduced by Sohl-Dickstein et al. (2015) in his paper &quot;Deep unsupervised learning using nonequilibrium thermodynamics&quot; which was followed up by Ho et al. (2020) in his paper &quot;Denoising diffusion probabilistic
+models&quot; (DDPMs), as well every other paper that has built on it. It is a latent variable generative model inspired by non-equilibrum thermodynamics in physics where samples generated is made possible by denoising process. </p>
+<ol>
+<li>Denoising Diffusion models is a two step model consisting of a forward process also called noising process and a backward process also know called denoisng or reverse noising process.</li>
+<li>It works by adding gaussian noise to input data which could be an image following a Markov Chain. </li>
+<li>The forward process follows a Markov chain where a little bit of gaussian noise is added to the input image which progressively disturbs the data distribution untill it is completely destroyed or unrecognised from gaussian noise.</li>
+<li>The backward or reverse process learns to restore the data to its original form.</li>
+<li>Reversing or removing the noise means recovering the values of the pixels, so that the resulting image will be similar to the original image. The reverse diffusion process takes a noisy image and learns to generate a less noisy version of that image, this process will be repeated until noise is converted to data. <strong>OR</strong></li>
+<li>In order to generate new data, standard gaussian noise is used to perform the  denoising. This process will be repeated until noise is converted to data.</li>
+<li>The recovering or noise reversal is parameterized because it uses a neural network. The task of the Neural Network is to predict the noise that was added in a given image.</li>
+<li>The objective function of this model was simplified to a MSE Loss i.e given a noised image, the noise added is predicted and then this predicted noise is subtracted from the noise to get the real image. This is basically what is happenning when training a Diffusion Model, It is learning to denoise.</li>
+<li>In DDPMs the forward process is fixed while the reverse process is what needs learning meaning we need to train only a single neural network.</li>
+<li>The important components of a denoising diffusion mdoels include:<ol>
+<li>UNET Architecture</li>
+<li>positional emebedidng</li>
+<li>noise scheduler</li>
+<li>attention mechanism</li>
+</ol>
+</li>
+</ol>
+<h2 id="mathematical-explanation">MATHEMATICAL EXPLANATION</h2>
+<h3 id="a-noising">A. NOISING:</h3>
+<h4 id="defining-the-process-formally">DEFINING THE PROCESS FORMALLY</h4>
+<h6 id="forward-process">FORWARD PROCESS:</h6>
+<p>The forward diffusion process starts from data (image) and generates this intermediate noisy images by simply adding noise one step at a time
+At every step, a normal distribution will be used to generate an image conditioned on the previous image.</p>
+<p>the normal distribution which is represented as $q(x_t|x_{t-1}) = \mathcal{N(x_t; \sqrt{1-\beta_t{x_{t-1}}\beta_t}I)}$ is goint to take $x_{t-1}$ the prevoius step and generate $x_t$ the current step. It takes $x_0$ and it generates $x_1$ </p>
+<p>A noraml distribution over the current step $x_t$ where the mean is $\mathcal{\sqrt{1-\beta_t}})$ times the image at the prevoius time step which is ${x_{t-1}}$ and ${\beta_t}I$ represents the variance scheduler which in the real sense is a very small positive scalar value $0.001$  </p>
+<p>This normal distribution, $\mathcal{N(x_t; {\sqrt{1-\beta_t}{x_{t-1}}, \beta_t}I)}$  takes the image at the previous step, rescales the pixel values in this image and then adds tiny bit of noise via the variance scheduler &quot;per time step&quot;</p>
+<h6 id="joint-distribution">JOINT DISTRIBUTION:</h6>
+<p>A joint distibution can also be defined for all the samples generated in the forward process starting from $x_1$ all the way to $x_T$.  The joint distribution which is the samples conditioned on $x_0$ is the cumulateive product of the conditionals that are formed at each step as such $q(x_1,...,x_T|x_0)$ defines the joint distribution of all the samples that will be generated in the forward markov process
+$$q(x_1,...,x_T|x_0) = \prod^T_{t=1}   {q(x_t|x_{t-1})}$$</p>
+<h6 id="speed">Speed?</h6>
+<p>Why can&#39;t we use $x_0$ our input image to generate noisy samples at any time step say $x_{10}$. Simply put can&#39;t we use $x_0$ to generate $x_{10}$ ?. 
+We can do that by making
+${\alpha}_t$ = $1-\beta_t$ , 
+then $\bar{\alpha}_t$ which is the cumulative product of ${\alpha}_t$ now becomes
+$$\bar{\alpha}<em>t = \prod^{t}</em>{s=1}(1-\beta_s)$$
+In order to answer the speed question we can then rewrite the original formular as follows:
+        $q(x_t|x_0) = \mathcal{N(x_t;\sqrt{\bar{\alpha_t}}x_0,(1-{\bar{\alpha_t}})I)}$
+Using the reparameterization trick we can sample $x_t$ as follows
+$x_t$ = $\sqrt{\bar{\alpha}}\space x_0 + \sqrt{1-\bar{\alpha_t}}\space \epsilon$  where $\epsilon \sim{\mathcal{N(0,1)}}$  and ${1-\bar{\alpha_t}}$ is our noise schedule at any time step, as such given $x_0$ we can draw samples at any time step $t$. </p>
+<p>It should also be noted that the forward diffusion process is defined such that as  $(x_T\mid{x_0})$ approaches infinity it becomes indistinguishable from standard normal distribution $\mathcal{N({x_T;(0,1)})}$. </p>
+<hr>
+<ol>
+<li>The forward chain pertubs the data distribution by gradually adding Gaussian noise to the ground truth image with a pre-designed schedule until the data distribution converges to a given prior, i.e., a standard Gaussian Distribution -- (Isometric Gaussian).
+$$ q(x_1,...,x_T|x_0) = \prod^T_{t=1}   {q(x_t|x_{t-1})} ---(1)$$
+$$ q(x_t|x_{t-1}) = \mathcal{N(x_t; \sqrt{1-\beta_t{x_{t-1}}\beta_t}I)}   ---(2)$$ 
+$q(x_t)$ is used to denote the distributions of latent variables $x_t$ in the forward process.</li>
+</ol>
+<p>The noising process defined in Eq.(2) allows us to sample an arbitrary step of the noised latents directly conditioned on the input $x_o$.
+    Where $\alpha_t$ = $1-\beta_t$ and $\bar{\alpha_t}$ = $\prod^t_{s=0}$ $\bar{\alpha_s}$, we can wite the marginal as:
+    $$ q(x_t|x_0) = \mathcal{N(x_t;\sqrt{\bar{\alpha_t}}x_0,(1-{\bar{\alpha_t}})I)} $$
+$$ x_t = \sqrt{\bar{\alpha_t}}x_0 + \sqrt{1-{\bar{\alpha_t}}}\epsilon $$
+When $\bar{\alpha}_t$ approximates 0, $x_T$ is practically indistinguisahble from pure Gaussian noise: $p(x_T)\approx$ $\mathcal{N}(x_T;0,1)$.</p>
+<h3 id="b-denoising--what-is-means-to-reverse-the-noise">B. DENOISING:  What is Means to Reverse The Noise?</h3>
+<h4 id="denoising-defining-the-generative-model-by-denoising">DENOISING: DEFINING THE GENERATIVE MODEL BY DENOISING</h4>
+<p>In order to generate data from a diffusion model, we will start from pure noise which is a standard normal distribution with zero mean and unit variance and generates data by denoising one step at a time.</p>
+<pre><code>                img(denoise)
+                
+</code></pre>
+<p>As such $p(x_T)$ = $\mathcal{N(x_T;(0,1))}$  is the distribution of data at the end of the forward diffusion process.
+the parametric denoising distribution can be defined as follows $p_\theta(x_{t-1}\mid{x_t})$ = $\mathcal{N({x_{t-1};{\mu}_\theta{(x_t,t)},{\Sigma_\theta({x_t,{t}}})})}$ apart from the sample $x_t$ at time $t$ the model also takes $t$ as input in order to account for the different noise levels at different time steps in the forward process noise schedule so that the model can learn to undo this individually</p>
+<h4 id="joint-distribution-1">Joint Distribution</h4>
+<p>The joint distribution can be written as 
+It is the product of the base distibution $p{(x_T)}$ and the product of the conditionals which still follows a markov process </p>
+<pre><code>    $x_0\Leftarrow \cdots  \Leftarrow \cdots  \Leftarrow x_{T-1}\cdots  \Leftarrow x_T$
+</code></pre>
+<p>$$p_\theta(x_{0:T})=p(x_T)\prod^T_{t=1}p_\theta(x_{t-1}|x_t)$$</p>
+<p>The model is now tasked with learning the probability density of an earlier time step given the current timestep. During this process iteration is done from pure noise $x_T$ to $x_0$ our final image </p>
+<p>Starting from sampled noise, the diffusion model performs $T$ denoising steps until a sharp image is formed. </p>
+<p>The denosing process produces a series of intermediate images with decreasing levels of noise, denote as $x_T, x_{T-1},...x_0$,</p>
+<p>Given only $x_T$ which is indistinguishable from gaussian noise we can get $x_0$ an output image. </p>
+<p>The reverse process takes the completely noised image and learns to gradually revert the Markov chain of noise corruption to the ground truth. The reversed process is then written as follows: 
+$$ p_\theta({x_{t-1}|x_t}) = \mathcal{N}(x_{t-1};\mu(x_t,t, {\Sigma}_\theta(x_t,t)) $$</p>
+<hr>
+<p>In Denoising Diffusion Models,  The Noise $\epsilon$ is what is Predicted and this is done by Optimizing the variational upper bound on the negative log-likelihood.</p>
+<hr>
+<p>$$
+\E\ [-\log{p_{\theta}}(x_0)]&lt; \ E_q[-\log\frac{p_\theta({x_{0:T}})}{q(x_{1:T}|x_0)}]--(7) $$
+$$ \ E_q[-\log{p{(x_T)}}-\sum_{t&gt;=1}{\log\frac{p_\theta({x_{0:T}})}{q(x_{1:T}|x_0)}} ]-- (8)$$
+$$= -L_{VLB}$$</p>
+<hr>
+<p>Reparametrization have been appplied to Eq. (8), which results in the general objective below:
+$$  E_{t\sim{\mathcal{U(0,T),x_0{\sim{q{(x_0),\epsilon\sim{\mathcal{N(0,1)}}}}}}}}[\lambda{(t)}||\epsilon-{\epsilon_\theta}(x_t,t)||^2]   --(10)$$</p>
+<hr>
+<p>The neural network ${\epsilon_\theta}(x_t,t)$ predicts $\epsilon$ by minimizing the loss = ${||\epsilon-\epsilon_\theta}(x_t,t)||^2$ which is the $L_2$ Loss 
+    INTUITIVELY: Given a noised image, the noise added is predicted and then this predicted noise is subtracted from the noise to get the real image. This is basically what is happenning when training a Diffusion Model, It is learning to denoise.</p>
+<hr>
+<hr>
+<p>Both the forward Diffusion processes $q(x_t|x_{t-1})$ and the backward or reconstruction process $q(x_{t-1}|x_t)$ are modelled as the products of Markov transition probabilities:
+$$q(x_{0:T}) = q(x_0)\prod_{t=1}^T{q(x_t|x_{t-1})}, p_\theta(x_{T:0}) = p(x_{T})\prod_{t=T}^1{p_{\theta}(x_{t-1}|x_t)},$$
+$q(x_0)$ is the real data distribution</p>
+<h4 id="important">IMPORTant</h4>
+<p>Diffusion models are latent variable models
+    Latent variables$:$ = $x_1,x_{2},x_3,x_4,\cdots x_T$<br>    Observed variables$:$ $x_0$</p>
+<h4 id="training-a-denosing-diffusion-probabilistic-model">TRAINING A DENOSING DIFFUSION PROBABILISTIC MODEL</h4>
+<p>The reverse step pocess is only tasked with learning the means while its variance is set to a constant</p>
+<hr>
+<h5 id="objective-function-of-a-ddpm">OBJECTIVE FUNCTION OF A DDPM</h5>
+<p>$$E_{x_0{\sim{q{(x_0),\epsilon\sim{\mathcal{N(0,1)t\sim{\mathcal{U(0,T),}}}}}}}}[||\epsilon-{\epsilon_\theta}(\sqrt{\bar{\alpha}}\space x_0 + \sqrt{1-\bar{\alpha_t}}\space \epsilon),t||^2]$$
+    Where $x_t = \sqrt{\bar{\alpha}}\space x_0 + \sqrt{1-\bar{\alpha_t}}\space \epsilon)$</p>
+<pre><code>                     $E_{x_0{\sim{q{(x_0),\epsilon\sim{\mathcal{N(0,1)t\sim{\mathcal{U(0,T),}}}}}}}}[||\epsilon-{\epsilon_\theta}(x_t,t)||^2]$
+</code></pre>
+<p>Our loss funtion finally looks like this$:$
+                            $L_{simple}={E_{x_0,t,\epsilon}}[||\epsilon_-\epsilon_{\theta}(x_t,t)||^2]$</p>
+<hr>
+<h6 id="the-training-algorithm-looks-like-this-traindiffpng">The Training Algorithm looks like this: ![[trainDIFF.PNG]]</h6>
+<h4 id="image-generation-or-samling-from-a-denosing-diffusion-probabilistic-model">IMAGE GENERATION or SAMLING FROM A DENOSING DIFFUSION PROBABILISTIC MODEL</h4>
+<hr>
+<h6 id="the-sampling-algorithm-looks-like-this-samplediffpng">The Sampling Algorithm looks like this: ![[sampleDIFF.PNG]]</h6>
+<h2 id="important-components-of-a-denoising-diffusion-model">IMPORTANT COMPONENTS OF A DENOISING DIFFUSION MODEL</h2>
+<ol>
+<li><p>UNET ARCHITECTURE</p>
+</li>
+<li><p>POSITIONAL EMBEDDING: Positional embedding as originally used in the Attention is all you need paper was utilized for train the neural network has shared parameters across time which means it can&#39;t distinguish between various timesteps as such it needs to filter the noise across images with different noise intensities.                    </p>
+<p> PE is added as a way of encoding positional information into the UNET Model to help distinguish the various noise intensities within the markov chain process</p>
+<p> The positional embedding is added as additional information in the downsample, middle and upsample block of the UNET Model.</p>
+<p> PE are wave frequencies used to capture positonal information at both odd $sin()$ and even $cosine()$ positions and this embeddings can be calculated as follows.</p>
+<p> $PE(<em>{pos,2i}) = sin(pos\div{1000^{2i/d}})$
+ $PE(</em>{pos,2i+1}) = cos(pos\div{1000^{2i/d}})$</p>
+</li>
+<li><p>NOISE SCHEDULER</p>
+</li>
+<li><p>ATTENTION MECHANISM:</p>
+</li>
+</ol>
+<h2 id="implementing-denoisng-diffusion-model-with-pytorch">IMPLEMENTING DENOISNG DIFFUSION MODEL WITH PYTORCH</h2>
+<p>It should be noted that I will not run training because it is needless and basically useless to train this kind of model because it is not state of the art as compared to the other models briefly explained above except you have a gpu compute where you can run it for over 1000 epochs. In <strong>part 2</strong> of this article you will see a detailed handson code for finetuning stable diffusion using dreambooth.</p>
+<pre><code>This code implementation is based on &quot;https:/github.com/okon/diffusion/models&quot;, he did a good job of implementing it step by step. Thanks for this 
+</code></pre>
+<ol>
+<li>Forward Process</li>
+<li>Backward Process</li>
+<li>Model Training</li>
+<li>Image Generation</li>
+</ol>
+<h2 id="conclusions">CONCLUSIONS</h2>
+<p>This article covered the foundation of Diffusion model by going deeply into Denoising diffusion models, the concepts, the maths and the code and then moving on to explaining briefly how Stable Diffusion can be finetuned using a technique using Dreambooth a technique proposed by researchers from google.</p>
+<hr>
+<h2 id="references">REFERENCES</h2>
+<ol>
+<li>Karsten Kreis; Ruigui Gao; Arash Vahdat (2022-5-4): &quot;Denoising Diffusion-based Generative Modelling: Foundations and Applications (CVPR 2002 Worskshop) &quot;</li>
+<li>Ho, J., Jain, A., and Abbeel, P. Denoising diffusion probabilistic models, 2020.</li>
+<li>Sohl-Dickstein, J., Weiss, E. A., Maheswaranathan, N., and Ganguli, S. Deep unsupervised learning using nonequilibrium thermodynamics, 2015.</li>
+<li>Karsten Kreis; Ruigui Gao; Arash Vahdat (2022-5-4): &quot;Denoising Diffusion-based Generative Modelling: Foundations and Applications (CVPR 2002 Worskshop) &quot;</li>
+<li>Karsten Kreis; Ruigui Gao; Arash Vahdat (2022-5-4): &quot;Denoising Diffusion-based Generative Modelling: Foundations and Applications (CVPR 2002 Worskshop) &quot;</li>
+<li>Karsten Kreis; Ruigui Gao; Arash Vahdat (2022-5-4): &quot;Denoising Diffusion-based Generative Modelling: Foundations and Applications (CVPR 2002 Worskshop) &quot;</li>
+<li>Karsten Kreis; Ruigui Gao; Arash Vahdat (2022-5-4): &quot;Denoising Diffusion-based Generative Modelling: Foundations and Applications (CVPR 2002 Worskshop) &quot;</li>
+<li>Karsten Kreis; Ruigui Gao; Arash Vahdat (2022-5-4): &quot;Denoising Diffusion-based Generative Modelling: Foundations and Applications (CVPR 2002 Worskshop) &quot;</li>
+</ol>
+<h1 id="diffusion-model-finetuning-for-multi-concept-generation-part-2">DIFFUSION MODEL FINETUNING FOR MULTI-CONCEPT GENERATION (PART 2)</h1>
+<p>We are going to be building a Multi Facial Character Style Generator</p>
+<p>...
+...
+...
+...
+...
+The second part of this article shows in details how to finetune stable diffusion as such all code runs on paperspace gradient RTXA4000</p>
+<h2 id="conclusions-1">CONCLUSIONS</h2>
+<p>This article covered the foundation of Diffusion model by going deeply into Denoising diffusion models, the concepts, the maths and the code and then moving on to explaining briefly how Stable Diffusion can be finetuned using a technique using Dreambooth a technique proposed by researchers from google.</p>
+<hr>
+<h2 id="references-1">REFERENCES</h2>
+<ol>
+<li>Karsten Kreis; Ruigui Gao; Arash Vahdat (2022-5-4): &quot;Denoising Diffusion-based Generative Modelling: Foundations and Applications (CVPR 2002 Worskshop) &quot;</li>
+<li>Ho, J., Jain, A., and Abbeel, P. Denoising diffusion probabilistic models, 2020.</li>
+<li>Sohl-Dickstein, J., Weiss, E. A., Maheswaranathan, N., and Ganguli, S. Deep unsupervised learning using nonequilibrium thermodynamics, 2015.</li>
+<li></li>
+<li></li>
+<li>Karsten Kreis; Ruigui Gao; Arash Vahdat (2022-5-4): &quot;Denoising Diffusion-based Generative Modelling: Foundations and Applications (CVPR 2002 Worskshop) &quot;</li>
+</ol>
